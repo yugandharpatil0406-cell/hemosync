@@ -1,0 +1,16 @@
+# Node dependencies
+node_modules/
+.npm/
+
+# Environment and local databases
+.env
+database_state.json
+*.log
+
+# Build files
+frontend/dist/
+.DS_Store
+Thumbs.db
+
+# Test executables
+tests/*.exe
