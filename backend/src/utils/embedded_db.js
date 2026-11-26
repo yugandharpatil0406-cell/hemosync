@@ -17,7 +17,7 @@ const INITIAL_BLOOD_GROUPS = [
 ];
 
 // Hash for 'password123'
-const DEFAULT_HASH = '$2b$10$OGPpKNRMoaqcSnzfbLH3cOF1BIuTF62uJenV5iRuGrUoq/ZEol3X6';
+const DEFAULT_HASH = '$2b$10$RN6pLyHJTCZrw.c1WmZu6ue4ApXCDTl6BXR0lVISmxpkv10g3JgjO';
 
 const INITIAL_USERS = [
   { id: 1, email: 'admin@bloodbank.com', password_hash: DEFAULT_HASH, role: 'admin', first_name: 'System', last_name: 'Administrator', phone: '+1-555-0100', is_active: 1 },
@@ -449,6 +449,23 @@ class EmbeddedDatabase {
         };
       });
       return [list, []];
+    }
+
+    // Scheduler metrics queries
+    if (upper.includes('TOTAL_CAPACITY') && upper.includes('DONATION_SLOTS')) {
+      const total_capacity = this.donation_slots.reduce((sum, s) => sum + (s.capacity || 0), 0);
+      const booked_capacity = this.donation_slots.reduce((sum, s) => sum + ((s.capacity || 0) - (s.available_capacity || 0)), 0);
+      return [[{ total_capacity, booked_capacity }], []];
+    }
+
+    if (upper.includes('TOTAL_APPOINTMENTS') && upper.includes('APPOINTMENTS') && upper.includes('CONFIRMED_COUNT')) {
+      const total_appointments = this.appointments.length;
+      const confirmed_count = this.appointments.filter(a => a.status === 'confirmed').length;
+      const waiting_count = this.appointments.filter(a => a.status === 'waiting').length;
+      const donated_count = this.appointments.filter(a => a.status === 'donated').length;
+      const cancelled_count = this.appointments.filter(a => a.status === 'cancelled').length;
+      const rejected_count = this.appointments.filter(a => a.status === 'rejected').length;
+      return [[{ total_appointments, confirmed_count, waiting_count, donated_count, cancelled_count, rejected_count }], []];
     }
 
     // 10. SELECT donation_slots
